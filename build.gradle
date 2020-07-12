@@ -27,6 +27,7 @@ dependencies {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
     testImplementation 'org.springframework.kafka:spring-kafka-test'
+    compile group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
 }
 
 sourceSets {
