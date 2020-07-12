@@ -17,6 +17,7 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(LibraryEventsController.class)
@@ -51,5 +52,49 @@ public class LibraryEventsControllerUnitTest {
         .content(requestBody)
         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void updateLibraryEvent() throws Exception {
+        Book book = Book.builder()
+                .bookId(123)
+                .bookAuthor("Root")
+                .bookName("AI")
+                .build();
+        LibraryEvent libraryEvent = LibraryEvent.builder()
+                .libraryEventId(343)
+                .book(book)
+                .build();
+
+        String requestBody = objectMapper.writeValueAsString(libraryEvent);
+        SettableListenableFuture future = new SettableListenableFuture();
+        when(libraryEventProducer.sendLibraryEvent_GenericApproach(isA(LibraryEvent.class))).thenReturn(future);
+
+        mockMvc.perform(put("/v1/libraryEvent")
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void updateLibraryEvent_withNullLibraryEventId() throws Exception {
+        Book book = Book.builder()
+                .bookId(123)
+                .bookAuthor("Root")
+                .bookName("AI")
+                .build();
+        LibraryEvent libraryEvent = LibraryEvent.builder()
+                .libraryEventId(null)
+                .book(book)
+                .build();
+
+        String requestBody = objectMapper.writeValueAsString(libraryEvent);
+        SettableListenableFuture future = new SettableListenableFuture();
+        when(libraryEventProducer.sendLibraryEvent_GenericApproach(isA(LibraryEvent.class))).thenReturn(future);
+
+        mockMvc.perform(put("/v1/libraryEvent")
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 }

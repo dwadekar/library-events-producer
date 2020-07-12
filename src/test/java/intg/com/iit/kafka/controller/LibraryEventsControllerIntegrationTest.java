@@ -77,4 +77,51 @@ public class LibraryEventsControllerIntegrationTest {
         assertEquals(expectedRecord, value);
 
     }
+
+    @Test
+    @Timeout(5)
+    public void putLibraryEvent() {
+        Book book = Book.builder()
+                .bookId(123)
+                .bookAuthor("Root")
+                .bookName("AI")
+                .build();
+        LibraryEvent libraryEvent = LibraryEvent.builder()
+                .libraryEventId(2314)
+                .book(book)
+                .build();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("content-type", MediaType.APPLICATION_JSON_VALUE);
+        HttpEntity<LibraryEvent> request = new HttpEntity<>(libraryEvent, headers);
+
+        ResponseEntity<LibraryEvent> responseEntity = restTemplate.exchange("/v1/libraryEvent", HttpMethod.PUT, request, LibraryEvent.class);
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+
+        ConsumerRecord<Integer, String> consumerRecord = KafkaTestUtils.getSingleRecord(consumer, "library-events");
+        String value = consumerRecord.value();
+        String expectedRecord = "{\"libraryEventId\":2314,\"libraryEventType\":\"UPDATE\",\"book\":{\"bookId\":123,\"bookName\":\"AI\",\"bookAuthor\":\"Root\"}}";
+
+        assertEquals(expectedRecord, value);
+    }
+
+    @Test
+    public void putLibraryEvent_InvalidLibraryEventID() {
+        Book book = Book.builder()
+                .bookId(123)
+                .bookAuthor("Root")
+                .bookName("AI")
+                .build();
+        LibraryEvent libraryEvent = LibraryEvent.builder()
+                .libraryEventId(null)
+                .book(book)
+                .build();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("content-type", MediaType.APPLICATION_JSON_VALUE);
+        HttpEntity<LibraryEvent> request = new HttpEntity<>(libraryEvent, headers);
+
+        ResponseEntity<?> responseEntity = restTemplate.exchange("/v1/libraryEvent", HttpMethod.PUT, request, String.class);
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+    }
 }
